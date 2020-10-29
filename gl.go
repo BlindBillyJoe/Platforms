@@ -26,8 +26,11 @@ func (w *Window) clear() {
 }
 
 func (w *Window) process() {
-	glfw.PollEvents()
 	w.w.SwapBuffers()
+}
+
+func (w *Window) pollEvents() {
+	glfw.PollEvents()
 }
 
 func initWindow(w, h int, title string) *Window {
@@ -37,16 +40,11 @@ func initWindow(w, h int, title string) *Window {
 	glfwWindow.MakeContextCurrent()
 	glfw.SwapInterval(1)
 	check(gl.Init())
-	//Mayde one day i will fix it
-	// gl.Enable(gl.CULL_FACE)
-	// gl.CullFace(gl.BACK)
-	// gl.FrontFace(gl.CW)
 
 	var window = &Window{
 		w: glfwWindow,
 	}
 
-	MainKeyboardController.activate(window)
 	return window
 }
 

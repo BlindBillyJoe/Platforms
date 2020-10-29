@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -89,7 +90,13 @@ func (l *Loader) startGroup(data []byte) {
 }
 
 func loadObjCfg(config *DataNode) object {
-	var obj = loadObject(config.data["Model"])
+	var filename = config.data["Model"]
+	println(filename)
+	f, err := os.Open(filename)
+	check(err)
+	defer f.Close()
+
+	var obj = loadObject(f)
 
 	var checkShaderInDb = func(sPath string, sType uint32) {
 		if shaderDatabase.loaded[sPath] == nil {
@@ -99,22 +106,36 @@ func loadObjCfg(config *DataNode) object {
 	}
 
 	var vShaderPath = config.data["VShader"]
+	fmt.Printf("\"%v\"\n", vShaderPath)
 	checkShaderInDb(vShaderPath, gl.VERTEX_SHADER)
 	obj.attachShader(shaderDatabase.loaded[vShaderPath])
 
 	var fShaderPath = config.data["FShader"]
+	fmt.Printf("\"%v\"\n", fShaderPath)
 	if len(fShaderPath) != 0 {
 		checkShaderInDb(fShaderPath, gl.FRAGMENT_SHADER)
 		obj.attachShader(shaderDatabase.loaded[fShaderPath])
 	}
 
-	if len(config.data["Color"]) != 0 {
-		var color = strings.Split(config.data["Color"], "/")
-		var col, _ = strconv.ParseFloat(color[0], 32)
+	var position = config.data["Position"]
+	if len(position) != 0 {
+		var pos = strings.Split(position, "/")
+		var val, _ = strconv.ParseFloat(pos[0], 32)
+		obj.pos.x = float32(val)
+		val, _ = strconv.ParseFloat(pos[1], 32)
+		obj.pos.y = float32(val)
+		val, _ = strconv.ParseFloat(pos[2], 32)
+		obj.pos.z = float32(val)
+	}
+
+	var color = config.data["Color"]
+	if len(color) != 0 {
+		var colors = strings.Split(color, "/")
+		var col, _ = strconv.ParseFloat(colors[0], 32)
 		obj.col.x = float32(col)
-		col, _ = strconv.ParseFloat(color[1], 32)
+		col, _ = strconv.ParseFloat(colors[1], 32)
 		obj.col.y = float32(col)
-		col, _ = strconv.ParseFloat(color[2], 32)
+		col, _ = strconv.ParseFloat(colors[2], 32)
 		obj.col.z = float32(col)
 	}
 	return obj
